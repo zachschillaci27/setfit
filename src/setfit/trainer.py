@@ -266,6 +266,8 @@ class SetFitTrainer:
         max_length: Optional[int] = None,
         trial: Optional[Union["optuna.Trial", Dict[str, Any]]] = None,
         show_progress_bar: bool = True,
+        log_steps: int = 0,
+        log_callback: Callable[[int, int, int, float, float], None] = None,
     ):
         """
         Main training entry point.
@@ -293,6 +295,10 @@ class SetFitTrainer:
                 The trial run or the hyperparameter dictionary for hyperparameter search.
             show_progress_bar (`bool`, *optional*, defaults to `True`):
                 Whether to show a bar that indicates training progress.
+            :param log_steps: Log every `log_steps` steps. Should be greater than 0 for logging to kick in.
+            :param log_callback: Callback function that is invoked to log during training:
+                    It must accept the following parameters in this order:
+                    `training idx`, `epoch`, `steps`, `current lr`, `loss value` (Sends loss value and current lr during `epoch`/`steps` for loss objective `training_idx`)
         """
         set_seed(self.seed)  # Seed must be set before instantiating the model when using model_init.
 
@@ -380,6 +386,8 @@ class SetFitTrainer:
                 warmup_steps=warmup_steps,
                 show_progress_bar=show_progress_bar,
                 use_amp=self.use_amp,
+                log_steps=log_steps,
+                log_callback=log_callback,
             )
 
         if not self.model.has_differentiable_head or not self._freeze:
